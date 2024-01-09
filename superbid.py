@@ -99,14 +99,14 @@ def get_dict_card(soup):
 def get_all_superbid_pages(all):
         drivers = []
         driver_option = webdriver.ChromeOptions()
-        #driver_option.add_argument("--headless")
+
         driver_option.add_argument("--no-sandbox")
         driver_option.add_argument("--disable-dev-shm-usage")
         driver_option.add_argument("--disable-gpu")
         driver_option.add_argument("--blink-settings=imagesEnabled=false")
         for i in range(1, all+1):
             driver = webdriver.Chrome(driver_option)
-            driver.get(f"https://www.superbid.net/categorias/carros-motos/carros?searchType=opened&filter=auction.modalityDesc:leilao&pageNumber={1}&pageSize=60&orderBy=price:desc")
+            driver.get(f"https://www.superbid.net/categorias/carros-motos/carros?searchType=opened&filter=auction.modalityDesc:leilao&pageNumber={i}&pageSize=60&orderBy=price:desc")
             drivers.append(driver)
         
         for driver in drivers:           
@@ -117,9 +117,4 @@ def get_all_superbid_pages(all):
                 except Exception as e:
                     update_errors("superbid", str(e))
             driver.quit()
-        
-if __name__ == "__main__":
-    for i in get_all_superbid_pages():
-        print(i)
-
-
+  

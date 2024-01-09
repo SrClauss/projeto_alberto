@@ -284,7 +284,6 @@ def get_copart_page(driver_pagina):
 
     trs = WebDriverWait(driver_pagina, 10).until(
             EC.visibility_of_all_elements_located((By.XPATH, "//tbody/tr")))
-    copart_erros = 0
     for tr in trs:
         try:
             yield get_copart_row(tr)
@@ -309,7 +308,9 @@ def get_copart_row(tr):
         "Monta": "",
         "Ano": "",
     }
+
     tds = WebDriverWait(tr, 10).until(EC.presence_of_all_elements_located((By.TAG_NAME, "td")))
+    
     result["Data"] = tds[9].text.split("\n")[0].replace(".", "/")
     result["Comitente"] = "Copart"
     result["Marca"] = tds[4].text
