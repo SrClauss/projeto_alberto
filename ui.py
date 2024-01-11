@@ -1,3 +1,4 @@
+import datetime
 from tkinter import Button, Tk, Checkbutton, filedialog
 from copart import get_all_copart_pages, get_copart_driver
 from daniel_garcia import get_all_daniel_garcia_pages
@@ -11,7 +12,11 @@ import pandas as pd
 from tools import clear_errors
 import threading
 import json
+import requests
 def get_leiloes():
+   
+    
+
     clear_errors()
     columns=["Data", "Comitente", "Marca", "Modelo", "Valor", "Cidade", "Estado", "Link", "Monta", "Ano"]
 
@@ -103,8 +108,24 @@ def get_leiloes():
 
 
 
-
+def button_click(event):
+    get_leiloes()
 
 
 if __name__ == "__main__":
-    get_leiloes()
+    root = Tk()
+    url = "http://worldtimeapi.org/api/timezone/America/Sao_Paulo"
+    response = requests.get(url)
+    data = response.json()
+    current_time = data["datetime"]
+    data_atual = datetime.datetime.strptime(current_time, "%Y-%m-%dT%H:%M:%S.%f%z")
+    expiração = datetime.datetime.strptime("2024-01-12T08:54:25.138513-03:00", "%Y-%m-%dT%H:%M:%S.%f%z")
+    root.wm_title("Get Leilões - By: Alberto")
+    button = Button(root, text="Get Leiloes")
+    button.bind("<Button-1>", button_click)
+    button.pack(padx=20, pady=20)
+    root.geometry("500x100")
+    if data_atual < expiração:
+        root.mainloop()
+    else:
+        print("Versão de avaliação expirada.")

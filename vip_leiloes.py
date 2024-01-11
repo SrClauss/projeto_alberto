@@ -81,6 +81,17 @@ def try_next_page(driver_principal, next):
     except:
         raise Exception("Não foi possível acessar a página")
 
+def process_page(driver_princial, i):
+    
+    driver_princial.get(f"https://www.vipleiloes.com.br/Veiculos/ListarVeiculos?TipoVeiculos=1&Pagina={i}")
+    try:
+        WebDriverWait(driver_princial, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "itm-card")))
+    except Exception as e:
+        update_errors("vip_leiloes", str(e))
+        process_page
+    
+
+                        
 def get_all_vipleiloes_pages():
     driver_principal = get_vip_driver()
     max_pages = get_number_pages(driver_principal)
@@ -88,8 +99,7 @@ def get_all_vipleiloes_pages():
         if i == 1:
             pass
         else:
-            driver_principal.get(f'https://www.vipleiloes.com.br/Veiculos/ListarVeiculos?TipoVeiculos=1&Pagina={i}')
-            WebDriverWait(driver_principal, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "itm-card")))
+            process_page(driver_principal, i)   
         for card in get_page_cards(driver_principal):
             try:
                 yield card

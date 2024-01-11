@@ -1,3 +1,4 @@
+import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -239,8 +240,9 @@ def get_copart_driver():
     excluir_vendas_futuras(driver_pagina=driver_pagina)
     global all
     all = set_table_size(driver_pagina=driver_pagina)
-
     WebDriverWait(driver_pagina, 10).until(EC.presence_of_element_located((By.TAG_NAME, "tbody")))
+    with open("url.txt", "w") as f:
+        f.write(driver_pagina.current_url)
 
     
     return driver_pagina
@@ -285,11 +287,9 @@ def get_copart_page(driver_pagina):
     trs = WebDriverWait(driver_pagina, 10).until(
             EC.visibility_of_all_elements_located((By.XPATH, "//tbody/tr")))
     for tr in trs:
-        try:
-            yield get_copart_row(tr)
-        except Exception as e:
-            update_errors("copart", str(e))
-
+       
+        yield get_copart_row(tr)
+       
 
     
 
@@ -311,13 +311,19 @@ def get_copart_row(tr):
 
     tds = WebDriverWait(tr, 10).until(EC.presence_of_all_elements_located((By.TAG_NAME, "td")))
     
-    result["Data"] = tds[9].text.split("\n")[0].replace(".", "/")
+    result["Data"] =datetime.datetime.now().strftime("%d/%m/%Y") if tds[9].text == "AO VIVO AGORA" else   tds[9].text.split("\n")[0].replace(".", "/")
     result["Comitente"] = "Copart"
     result["Marca"] = tds[4].text
     result["Modelo"] = tds[5].text
     result["Valor"] = float(re.findall(r"R\$[\s]*\d{1,3}(?:\.\d{3})*(?:,\d{2})", tds[11].text)[0].removeprefix("R$ ").replace(".", "").replace(",", "."))
-    result["Cidade"] = tds[10].text.split(" - ")[0]
-    result["Estado"] = tds[10].text.split(" - ")[1]
+    try:
+        result["Cidade"] = tds[10].text.split(" - ")[0]
+    except:
+        result["Cidade"] = tds[10].text
+    try:
+        result["Estado"] = tds[10].text.split(" - ")[1]
+    except:
+        result["Estado"] = ""
     result["Link"] = tds[1].find_element(
         By.TAG_NAME, "a").get_attribute("href")
     result["Monta"] = get_monta(tds[8].text)

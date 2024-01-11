@@ -53,7 +53,11 @@ def get_all_daniel_garcia_pages():
         driver_principal.get(f"https://tudoleilao.com.br/?categoria=1&pag={page}&leilao=5")
         boxes = get_boxes(driver_principal)
         for box in boxes:
-            yield get_dict_box(box)
+            try:
+                yield get_dict_box(box)
+            except Exception as e:
+                print(str(e))
+                update_errors("daniel_garcia", str(e))
           
                 
                 

@@ -8,7 +8,7 @@ import requests as rq
 from bs4 import BeautifulSoup
 from tools import get_monta, encontrar_marca_carro, update_errors
 from tools import get_monta
-import httpx
+
 import concurrent.futures
 tentativas = 1
 
@@ -69,7 +69,7 @@ def get_dict_card(card):
     cidade = soap.find("span", attrs={"class": "text-local"}).text.removesuffix(" - ")
     estado =  soap.find("span", attrs={"class": "text-local"}).next_sibling.text.strip()
     link = "https://leilo.com.br" + soap.find("a").get("href")
-    result = httpx.get(link).text
+    result = rq.get(link).text
 
 
         

@@ -59,9 +59,13 @@ def get_loop_driver():
 
 
 def get_all_boxes(driver_principal):
-    boxes = WebDriverWait(driver_principal, 10).until(
-        EC.presence_of_all_elements_located((By.CLASS_NAME, "undefined"))
-    )
+    try:
+        boxes = WebDriverWait(driver_principal, 10).until(
+            EC.presence_of_all_elements_located((By.CLASS_NAME, "undefined"))
+        )
+    except:
+        driver_principal.refresh()
+        boxes = get_all_boxes(driver_principal)
     return boxes
 
 def click_box_button(box):

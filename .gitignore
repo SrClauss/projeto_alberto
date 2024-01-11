@@ -1,0 +1,6 @@
+build/
+dist/
+leiloes.xlsx
+url.txt
+venv/
+__pycache__/

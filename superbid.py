@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from tools import get_monta, encontrar_marca_carro, update_errors
 from tools import get_monta
 from datetime import datetime, timedelta
+import concurrent.futures
 
 
 
@@ -18,9 +19,13 @@ def get_max_superbid_page():
     driver_pagina = webdriver.Chrome()
     driver_pagina.get("https://www.superbid.net/categorias/carros-motos/carros?searchType=opened&filter=auction.modalityDesc:leilao&pageNumber=1&pageSize=60&orderBy=price:desc")
     driver_pagina.maximize_window()
-    gcap = WebDriverWait(driver_pagina, 10).until(
-        EC.element_to_be_clickable((By.CLASS_NAME, "gcap-close")))
-    gcap.click()
+    try:
+        gcap = WebDriverWait(driver_pagina, 10).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, "gcap-close")))
+        gcap.click()
+    except:
+        driver_pagina.quit()
+        return get_max_superbid_page()
     accept_cookie_button = WebDriverWait(driver_pagina, 10).until(
     EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
     accept_cookie_button.click()
@@ -32,7 +37,7 @@ def get_max_superbid_page():
     return all
    
 def get_valids_soups(driver_pagina):
-    boxes = WebDriverWait(driver_pagina, 10).until(
+    boxes = WebDriverWait(driver_pagina, 1000).until(
         EC.presence_of_all_elements_located((By.XPATH, "//*[starts-with(@id, 'offer-')]")))
 
 
@@ -96,25 +101,56 @@ def get_dict_card(soup):
         "Monta": monta.upper(),
         "Ano": ano,     
     }
+
+def process_driver(url):
+        driver_option = webdriver.ChromeOptions()
+        driver_option.add_argument("--no-sandbox")
+        driver_option.add_argument("--disable-dev-shm-usage")
+        driver_option.add_argument("--disable-gpu")
+        driver_option.add_argument("--blink-settings=imagesEnabled=false")
+        driver = webdriver.Chrome(driver_option)
+        driver.maximize_window()
+        driver.get(url)
+        driver.minimize_window()
+        return driver
+
+
 def get_all_superbid_pages(all):
-        drivers = []
+       
         driver_option = webdriver.ChromeOptions()
 
         driver_option.add_argument("--no-sandbox")
         driver_option.add_argument("--disable-dev-shm-usage")
         driver_option.add_argument("--disable-gpu")
         driver_option.add_argument("--blink-settings=imagesEnabled=false")
-        for i in range(1, all+1):
-            driver = webdriver.Chrome(driver_option)
-            driver.get(f"https://www.superbid.net/categorias/carros-motos/carros?searchType=opened&filter=auction.modalityDesc:leilao&pageNumber={i}&pageSize=60&orderBy=price:desc")
-            drivers.append(driver)
+        urls = [ ]
+        for i in range(1, all):
+             urls.append(f"https://www.superbid.net/categorias/carros-motos/carros?searchType=opened&filter=auction.modalityDesc:leilao&pageNumber={i}&pageSize=60&orderBy=price:desc")
+             
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=13) as executor:
+            future_results = [executor.submit(process_driver,url) for url in urls] 
+
+            for future in concurrent.futures.as_completed(future_results):
+                driver = future.result()
+                soups = get_valids_soups(driver)
+                for soup in soups:
+                    try:
+                        yield get_dict_card(soup)
+                    except Exception as e:
+                        update_errors("superbid", str(e))
+                driver.close()
+
         
-        for driver in drivers:           
-            soups = get_valids_soups(driver)
-            for soup in soups:
-                try:
-                    yield get_dict_card(soup)
-                except Exception as e:
-                    update_errors("superbid", str(e))
-            driver.quit()
-  
+            
+               
+    
+def teste():
+    all = get_max_superbid_page()
+    print(all)
+    for i in get_all_superbid_pages(all):
+        print(i)
+    print("Bem amigo, acabou")
+
+if __name__ == "__main__":
+    teste()
