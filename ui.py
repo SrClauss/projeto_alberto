@@ -84,7 +84,7 @@ def get_leiloes():
         get_all_daniel_garcia_pages,
         get_all_leilo_pages,
         get_all_loop_leiloes,
-        get_all_superbid
+        get_all_superbid,
         get_all_vipleiloes_pages,
         
     ]
