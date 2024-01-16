@@ -27,7 +27,11 @@ def get_number_pages(driver_principal):
     number_elements = int(WebDriverWait(driver_principal, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "slv-restit"))).text.split(" ")[0])
     return math.ceil(number_elements/12)
 def get_page_cards(driver_principal):
-    cards = WebDriverWait(driver_principal, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "itm-card")))
+    try:
+        cards = WebDriverWait(driver_principal, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "itm-card")))
+    except:
+        driver_principal.refresh()
+        return get_page_cards(driver_principal)
 
     for card in cards:
         if card.text !="":

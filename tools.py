@@ -1,6 +1,18 @@
 import json
-from threading import Lock
 
+import threading
+import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+errors = [
+
+]
+SCRIPT_ID = os.environ.get("SCRIPT_ID")
+URL = os.environ.get("URL")
 
 
 def get_monta(string):
@@ -71,29 +83,34 @@ def encontrar_marca_carro(string):
 
 
 def clear_errors():
+    global errors
+    errors = [
+     
+ ]
  
- errors = {
-     "copart": [],
-     "daniel_garcia": [],
-     "freitas": [],
-     "grupo_leilo": [],
-     "loop_leiloes": [],
-     "superbid": [],
-     "vip_leiloes": []
- }
  
- with open("errors.json", "w") as file:
-     json.dump(errors, file)
-
     
+lock = threading.Lock()
+
+def update_errors(comitente, error):
+    with lock:
+        global errors
+        errors.append(f"{comitente}: {error}")
 
 
-def update_errors(key, error):
-    with open("errors.json", "r") as file:
-        errors = json.load(file)
-    
-    errors[key].append(error)
-
+def save_errors():
+    global errors
+    print(errors)
     with open("errors.json", "w") as file:
         json.dump(errors, file)
+        try:
+            payload = {
+                    "datetime": requests.get("http://worldtimeapi.org/api/timezone/America/Sao_Paulo").json()["datetime"],
+                    "errors": errors
+            }
+            req = requests.put(f"{URL}/send_errors/{SCRIPT_ID}", json=payload)
+            print(req.json(), req.content, req.status_code)
+        except Exception as e:
+            print(f"Não foi possivel enviar relatorio de erros devido a excessão {e}")
+
 

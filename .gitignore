@@ -4,3 +4,6 @@ leiloes.xlsx
 url.txt
 venv/
 __pycache__/
+ui.spec
+.env
+teste.ipynb

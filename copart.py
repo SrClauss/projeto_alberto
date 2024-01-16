@@ -241,8 +241,7 @@ def get_copart_driver():
     global all
     all = set_table_size(driver_pagina=driver_pagina)
     WebDriverWait(driver_pagina, 10).until(EC.presence_of_element_located((By.TAG_NAME, "tbody")))
-    with open("url.txt", "w") as f:
-        f.write(driver_pagina.current_url)
+   
 
     
     return driver_pagina
@@ -255,10 +254,20 @@ def click_next_page(driver_pagina):
         next.click()
         tentativas = 1
     except:
-        time.sleep(0.5)
-        print("erro ao carregar o botão next, fazendo mais {} tentativas".format(tentativas))
+        time.sleep(2)
+        print("erro ao carregar o botão next ao sair da pagina, fazendo mais {} tentativas".format(tentativas))
         tentativas += 1
         click_next_page(driver_pagina=driver_pagina)
+    
+    try:
+        time.sleep(2)
+        next = WebDriverWait(driver_pagina, 10).until(
+            EC.visibility_of_element_located((By.XPATH, "//*[contains(text(),'Próximo')]")))
+        tentativas = 1
+    except:
+        
+        print("erro ao carregar o botão next ao entrar na pagina, fazendo mais {} tentativas".format(tentativas))
+        tentativas += 1
 
 def get_all_copart_pages(driver_pagina):
    
@@ -268,10 +277,9 @@ def get_all_copart_pages(driver_pagina):
     for i in range(all-1):
         
         for j in get_copart_page(driver_pagina):
-            try:
+           
                 yield j
-            except Exception as e:
-                update_errors("copart", str(e))
+           
         click_next_page(driver_pagina=driver_pagina)
     
     driver_pagina.quit()
@@ -287,7 +295,7 @@ def get_copart_page(driver_pagina):
     trs = WebDriverWait(driver_pagina, 10).until(
             EC.visibility_of_all_elements_located((By.XPATH, "//tbody/tr")))
     for tr in trs:
-       
+   
         yield get_copart_row(tr)
        
 
@@ -309,6 +317,7 @@ def get_copart_row(tr):
         "Ano": "",
     }
 
+    
     tds = WebDriverWait(tr, 10).until(EC.presence_of_all_elements_located((By.TAG_NAME, "td")))
     
     result["Data"] =datetime.datetime.now().strftime("%d/%m/%Y") if tds[9].text == "AO VIVO AGORA" else   tds[9].text.split("\n")[0].replace(".", "/")
@@ -324,13 +333,23 @@ def get_copart_row(tr):
         result["Estado"] = tds[10].text.split(" - ")[1]
     except:
         result["Estado"] = ""
-    result["Link"] = tds[1].find_element(
-        By.TAG_NAME, "a").get_attribute("href")
-    result["Monta"] = get_monta(tds[8].text)
-    result["Ano"] = tds[7].text + "/" + tds[3].text
-    
+    try:
+        result["Link"] = tds[1].find_element(
+            By.TAG_NAME, "a").get_attribute("href")
+    except:
+        result["Link"] = ""
+    try:
+        result["Monta"] = get_monta(tds[8].text)
+    except:
+        result["Monta"] = ""
+    try:
+        result["Ano"] = tds[7].text + "/" + tds[3].text
+    except:
+        result["Ano"] = ""
+                
     return result
 
 if __name__ == "__main__":
+    
     for i in get_all_copart_pages(get_copart_driver()):
         print(i)

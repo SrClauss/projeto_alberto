@@ -1,5 +1,6 @@
 import datetime
-from tkinter import Button, Tk, Checkbutton, filedialog
+import json
+from tkinter import Button, Tk, Checkbutton, filedialog, messagebox
 from copart import get_all_copart_pages, get_copart_driver
 from daniel_garcia import get_all_daniel_garcia_pages
 from freitas import get_all_freitas_cards, get_freitas_driver
@@ -9,9 +10,9 @@ from superbid import get_all_superbid_pages, get_max_superbid_page
 from vip_leiloes import get_all_vipleiloes_pages
 from openpyxl import Workbook
 import pandas as pd
-from tools import clear_errors
+from tools import clear_errors, save_errors
 import threading
-import json
+from tools import errors, SCRIPT_ID, URL
 import requests
 def get_leiloes():
    
@@ -67,24 +68,27 @@ def get_leiloes():
         lock.release()
     
 
-    
+    """
     copart_driver = get_copart_driver()
     freitas_driver = get_freitas_driver()
+    """
     max_superbid_page = get_max_superbid_page()
+
     get_all_superbid = lambda : get_all_superbid_pages(max_superbid_page)
+    """
     get_all_copart = lambda : get_all_copart_pages(copart_driver)
     get_freitas_cards = lambda : get_all_freitas_cards(freitas_driver)
-    
+    """
 
 
     functions = [
-        get_all_copart,
-        get_freitas_cards,
-        get_all_daniel_garcia_pages,
-        get_all_leilo_pages,
-        get_all_loop_leiloes,
-        get_all_superbid,
-        get_all_vipleiloes_pages,
+        #get_all_copart,
+        #get_freitas_cards,
+        #get_all_daniel_garcia_pages,
+        #get_all_leilo_pages,
+        #get_all_loop_leiloes,
+        get_all_superbid
+        #get_all_vipleiloes_pages,
         
     ]
     threads = []
@@ -96,9 +100,8 @@ def get_leiloes():
 
     for thread in threads:
         thread.join()
-    with open("errors.json", "r") as f:
-        errors = json.load(f)
     
+    save_errors()
     print("processo encerrado com os seguintes erros:")
     for key in errors:
         print(key + ": " + str(errors[key]))
@@ -114,18 +117,15 @@ def button_click(event):
 
 if __name__ == "__main__":
     root = Tk()
-    url = "http://worldtimeapi.org/api/timezone/America/Sao_Paulo"
-    response = requests.get(url)
-    data = response.json()
-    current_time = data["datetime"]
-    data_atual = datetime.datetime.strptime(current_time, "%Y-%m-%dT%H:%M:%S.%f%z")
-    expiração = datetime.datetime.strptime("2024-01-12T08:54:25.138513-03:00", "%Y-%m-%dT%H:%M:%S.%f%z")
-    root.wm_title("Get Leilões - By: Alberto")
-    button = Button(root, text="Get Leiloes")
-    button.bind("<Button-1>", button_click)
-    button.pack(padx=20, pady=20)
-    root.geometry("500x100")
-    if data_atual < expiração:
+    script = json.loads(requests.get(f"{URL}/get_script/" + SCRIPT_ID).text)
+    
+    if script["activate"]: 
+        root.wm_title("Get Leilões - By: Alberto")
+        button = Button(root, text="Get Leiloes")
+        button.bind("<Button-1>", button_click)
+        button.pack(padx=20, pady=20)
+        root.geometry("500x100")
         root.mainloop()
     else:
-        print("Versão de avaliação expirada.")
+        messagebox.showwarning("Aviso", "Script Desativado, para ativá-lo, entre em contato com o desenvolvedor",)
+    

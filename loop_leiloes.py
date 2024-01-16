@@ -100,8 +100,11 @@ def get_dict_box(box):
         "Monta": "",
         "Ano": "",     
     }
-    valor = box.find_elements(By.CLASS_NAME, "MuiGrid-root.MuiGrid-container.MuiGrid-justify-content-xs-space-between")[1].text.split("\n")[1]
-    valor = float(valor.replace(".", "").replace(",", ".").removeprefix("R$ "))
+    try:
+        valor = box.find_elements(By.CLASS_NAME, "MuiGrid-root.MuiGrid-container.MuiGrid-justify-content-xs-space-between")[1].text.split("\n")[1]
+        valor = float(valor.replace(".", "").replace(",", ".").removeprefix("R$ "))
+    except:
+        valor = None
     link = box.find_element(By.TAG_NAME, "a").get_attribute("href")
     soap = BeautifulSoup(rq.get(link).text, "html.parser")
     h1 = soap.find_all("h1")
