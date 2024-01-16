@@ -68,27 +68,24 @@ def get_leiloes():
         lock.release()
     
 
-    """
+    
     copart_driver = get_copart_driver()
     freitas_driver = get_freitas_driver()
-    """
     max_superbid_page = get_max_superbid_page()
-
     get_all_superbid = lambda : get_all_superbid_pages(max_superbid_page)
-    """
     get_all_copart = lambda : get_all_copart_pages(copart_driver)
     get_freitas_cards = lambda : get_all_freitas_cards(freitas_driver)
-    """
+    
 
 
     functions = [
-        #get_all_copart,
-        #get_freitas_cards,
-        #get_all_daniel_garcia_pages,
-        #get_all_leilo_pages,
-        #get_all_loop_leiloes,
+        get_all_copart,
+        get_freitas_cards,
+        get_all_daniel_garcia_pages,
+        get_all_leilo_pages,
+        get_all_loop_leiloes,
         get_all_superbid
-        #get_all_vipleiloes_pages,
+        get_all_vipleiloes_pages,
         
     ]
     threads = []
